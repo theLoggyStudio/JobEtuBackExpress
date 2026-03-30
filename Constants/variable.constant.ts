@@ -1,4 +1,5 @@
 import type { MatchStatus } from './types.constant';
+import { appEnv, appEnvBool, appEnvInt, appEnvOrDefault, appEnvPositiveInt } from './envResolve';
 import { MODE_CONFIG } from './mode.constant';
 
 /**
@@ -27,7 +28,7 @@ export const STORAGE_DRIVER_CONFIG = {
 export type StorageDriver = (typeof STORAGE_DRIVER_CONFIG)[keyof typeof STORAGE_DRIVER_CONFIG];
 
 function resolveStorageDriver(): StorageDriver {
-  const raw = process.env.STORAGE_DRIVER;
+  const raw = appEnv('STORAGE_DRIVER');
   if (raw === STORAGE_DRIVER_CONFIG.memory) return STORAGE_DRIVER_CONFIG.memory;
   if (raw === STORAGE_DRIVER_CONFIG.json) return STORAGE_DRIVER_CONFIG.json;
   if (raw === STORAGE_DRIVER_CONFIG.postgres) return STORAGE_DRIVER_CONFIG.postgres;
@@ -37,32 +38,39 @@ function resolveStorageDriver(): StorageDriver {
   return MODE_CONFIG.current === 'test' ? STORAGE_DRIVER_CONFIG.memory : STORAGE_DRIVER_CONFIG.postgres;
 }
 
+const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
+
+/** En test : `CORS_ORIGIN_TEST` puis `CORS_ORIGIN`. En production : `CORS_ORIGIN` uniquement. */
+function resolveCorsOrigin(): string {
+  return appEnvOrDefault('CORS_ORIGIN', DEFAULT_CORS_ORIGIN);
+}
+
 export const SERVER_CONFIG = {
-  port: Number(process.env.PORT) || 4000,
-  nodeEnv: process.env.NODE_ENV ?? 'development',
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-  dbSync: process.env.DB_SYNC === 'true',
-  payloadLimit: process.env.PAYLOAD_LIMIT ?? '1mb',
+  port: appEnvInt('PORT', 4000) || 4000,
+  nodeEnv: appEnvOrDefault('NODE_ENV', 'development'),
+  corsOrigin: resolveCorsOrigin(),
+  dbSync: appEnvBool('DB_SYNC'),
+  payloadLimit: appEnvOrDefault('PAYLOAD_LIMIT', '1mb'),
   storageDriver: resolveStorageDriver(),
 } as const;
 
 /** Fichier de données en mode `STORAGE_DRIVER=json` (relatif au répertoire de travail du processus). */
 export const JSON_STORE_CONFIG = {
-  fileRelativePath: process.env.JSON_STORE_PATH ?? 'data/jobetu-test-store.json',
+  fileRelativePath: appEnvOrDefault('JSON_STORE_PATH', 'data/jobetu-test-store.json'),
 } as const;
 
 function resolveClientPayloadAesKeyHex(): string | null {
-  const raw = process.env.CLIENT_PAYLOAD_AES_KEY?.trim();
+  const raw = appEnv('CLIENT_PAYLOAD_AES_KEY');
   if (!raw) return null;
   const lower = raw.toLowerCase();
   return /^[0-9a-f]{64}$/.test(lower) ? lower : null;
 }
 
 export const SECURITY_CONFIG = {
-  jwtSecret: process.env.JWT_SECRET ?? 'dev-only-change-me',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+  jwtSecret: appEnvOrDefault('JWT_SECRET', 'dev-only-change-me'),
+  jwtExpiresIn: appEnvOrDefault('JWT_EXPIRES_IN', '7d'),
   /** Coût bcrypt : mots de passe stockés en hachage à sens unique (irréversible), jamais en clair. */
-  bcryptRounds: Number(process.env.BCRYPT_ROUNDS) || 10,
+  bcryptRounds: appEnvPositiveInt('BCRYPT_ROUNDS', 10),
   /**
    * Clé AES-256 (64 caractères hex) partagée avec le front (`VITE_CLIENT_PAYLOAD_AES_KEY`)
    * pour chiffrer les mots de passe dans le corps JSON. Complément au HTTPS, pas un substitut.
@@ -70,9 +78,9 @@ export const SECURITY_CONFIG = {
   clientPayloadAesKeyHex: resolveClientPayloadAesKeyHex(),
   /** Désactivé par défaut pour API JSON + front séparé ; activer en prod derrière reverse proxy si besoin */
   helmetContentSecurityPolicy: false as boolean,
-  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  rateLimitMax: Number(process.env.RATE_LIMIT_MAX) || 200,
-  authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX) || 30,
+  rateLimitWindowMs: appEnvInt('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000),
+  rateLimitMax: appEnvInt('RATE_LIMIT_MAX', 200),
+  authRateLimitMax: appEnvInt('AUTH_RATE_LIMIT_MAX', 30),
 } as const;
 
 export const ROLE_CONFIG = {
@@ -99,7 +107,8 @@ export const MESSAGE_CONFIG = {
   invalidCredentials: 'Identifiants incorrects',
   emailTaken: 'Cet email est déjà utilisé',
   adminRegisterForbidden: 'Création de compte admin interdite via API publique',
-  databaseUrlRequired: 'DATABASE_URL est requis lorsque STORAGE_DRIVER=postgres',
+  databaseUrlRequired:
+    'URL PostgreSQL requise si STORAGE_DRIVER=postgres (en test : *_TEST puis clés prod ; DATABASE_URL, POSTGRES_URL, …)',
   matchPairConflict:
     'Une demande ou une mise en relation validée existe déjà pour cette paire entreprise / étudiant.',
   matchInvalidStatusTransition: 'Changement de statut impossible pour cette demande.',

@@ -1,59 +1,77 @@
 /**
  * PayDunya — clés et réglages.
- * Renseignez les variables d’environnement (voir `.env.example`) ; ne committez jamais les vraies clés.
+ * Variables d’environnement : voir `.env.example`. Ne committez jamais les vraies clés.
  *
- * Mode `test` : `PAYDUNYA_TEST_*` (+ secours `PAYDUNYA_PRIVATE_KEY` / `PAYDUNYA_PUBLIC_KEY` / `PAYDUNYA_TOKEN`).
- * Mode `live` : `PAYDUNYA_LIVE_*` (+ mêmes secours).
+ * Mode **test** (app, `MODE_CONFIG`) : chaque variable existe aussi en `*_TEST` (prioritaire).
+ * Mode **production** : uniquement les variables sans `_TEST`.
+ *
+ * `PAYDUNYA_TEST_*` / `PAYDUNYA_LIVE_*` : clés API PayDunya (sandbox vs live), distinctes du suffixe `_TEST` app.
  */
+import { appEnv } from './envResolve';
+import { APP_CONFIG } from './variable.constant';
+
 export type PaydunyaMode = 'test' | 'live';
 
 function resolveMode(): PaydunyaMode {
-  return process.env.PAYDUNYA_MODE === 'live' ? 'live' : 'test';
+  const raw = appEnv('PAYDUNYA_MODE');
+  return raw === 'live' ? 'live' : 'test';
 }
 
 const paydunyaMode = resolveMode();
 
-function envTrim(key: string): string {
-  return process.env[key]?.trim() ?? '';
+function envPay(key: string): string {
+  return appEnv(key) ?? '';
 }
 
 const privateKeyForMode =
   paydunyaMode === 'live'
-    ? envTrim('PAYDUNYA_LIVE_PRIVATE_KEY') || envTrim('PAYDUNYA_PRIVATE_KEY')
-    : envTrim('PAYDUNYA_TEST_PRIVATE_KEY') || envTrim('PAYDUNYA_PRIVATE_KEY');
+    ? envPay('PAYDUNYA_LIVE_PRIVATE_KEY') || envPay('PAYDUNYA_PRIVATE_KEY')
+    : envPay('PAYDUNYA_TEST_PRIVATE_KEY') || envPay('PAYDUNYA_PRIVATE_KEY');
 
 const publicKeyForMode =
   paydunyaMode === 'live'
-    ? envTrim('PAYDUNYA_LIVE_PUBLIC_KEY') || envTrim('PAYDUNYA_PUBLIC_KEY')
-    : envTrim('PAYDUNYA_TEST_PPUBLIC_KEY') || envTrim('PAYDUNYA_PUBLIC_KEY');
+    ? envPay('PAYDUNYA_LIVE_PUBLIC_KEY') || envPay('PAYDUNYA_PUBLIC_KEY')
+    : envPay('PAYDUNYA_TEST_PPUBLIC_KEY') || envPay('PAYDUNYA_PUBLIC_KEY');
 
 const tokenForMode =
   paydunyaMode === 'live'
-    ? envTrim('PAYDUNYA_LIVE_TOKEN') || envTrim('PAYDUNYA_TOKEN')
-    : envTrim('PAYDUNYA_TEST_PTOKEN') || envTrim('PAYDUNYA_TOKEN');
+    ? envPay('PAYDUNYA_LIVE_TOKEN') || envPay('PAYDUNYA_TOKEN')
+    : envPay('PAYDUNYA_TEST_PTOKEN') || envPay('PAYDUNYA_TOKEN');
 
 export const PAYDUNYA_CONFIG = {
   /** Clé principale (Master Key) — sert aussi à vérifier le hash des IPN / réponses confirm. */
-  masterKey: envTrim('PAYDUNYA_MASTER_KEY'),
+  masterKey: envPay('PAYDUNYA_MASTER_KEY'),
   privateKey: privateKeyForMode,
   /** Clé publique (PSR / SoftPay ; le checkout PAR utilise surtout private + token). */
   publicKey: publicKeyForMode,
   token: tokenForMode,
   mode: paydunyaMode,
   /** Montant FCFA pour la soumission d’un questionnaire après paiement. */
-  submissionAmountFcfa: Number(process.env.PAYDUNYA_SUBMISSION_AMOUNT) > 0
-    ? Number(process.env.PAYDUNYA_SUBMISSION_AMOUNT)
-    : 2500,
+  submissionAmountFcfa: (() => {
+    const n = Number(appEnv('PAYDUNYA_SUBMISSION_AMOUNT'));
+    return Number.isFinite(n) && n > 0 ? n : 2500;
+  })(),
   /** Nom affiché sur la page de paiement PayDunya. */
-  storeName: process.env.PAYDUNYA_STORE_NAME?.trim() || 'JobEtu',
+  storeName: appEnv('PAYDUNYA_STORE_NAME')?.trim() || 'JobEtu',
   /** Origine du front (sans slash final) — return_url / cancel_url. */
-  frontendBaseUrl: process.env.FRONTEND_APP_URL?.replace(/\/$/, '') || 'http://localhost:5173',
+  frontendBaseUrl: (appEnv('FRONTEND_APP_URL') ?? 'http://localhost:5173').replace(/\/$/, ''),
   /**
-   * URL publique de l’API (sans slash final) — callback IPN PayDunya.
+   * URL publique de l’API (sans slash final) — sert au `callback_url` par défaut si `PAYDUNYA_CALLBACK_URL` est vide.
    * Ex. https://api.mondomaine.sn ou tunnel ngrok en dev.
    */
-  apiPublicBaseUrl: process.env.API_PUBLIC_URL?.replace(/\/$/, '') || 'http://localhost:4000',
+  apiPublicBaseUrl: (appEnv('API_PUBLIC_URL') ?? 'http://localhost:4000').replace(/\/$/, ''),
 } as const;
+
+/**
+ * URL complète IPN (`callback_url` facture PayDunya).
+ * Définir `PAYDUNYA_CALLBACK_URL` pour pointer vers le front (ex. `/paydunia/hasPaied` + proxy Vercel vers l’API).
+ * Sinon : `{API_PUBLIC_URL}{apiPrefix}/webhooks/paydunya`.
+ */
+export function getPaydunyaIpnCallbackUrl(): string {
+  const custom = appEnv('PAYDUNYA_CALLBACK_URL')?.trim().replace(/\/$/, '');
+  if (custom) return custom;
+  return `${PAYDUNYA_CONFIG.apiPublicBaseUrl}${APP_CONFIG.apiPrefix}/webhooks/paydunya`;
+}
 
 export function isPaydunyaConfigured(): boolean {
   const c = PAYDUNYA_CONFIG;

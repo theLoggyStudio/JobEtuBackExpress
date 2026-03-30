@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+.env.test
+.env.prod
 *.log
 .DS_Store
 Thumbs.db

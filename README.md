@@ -4,20 +4,35 @@ API REST Express + TypeScript, persistance **PostgreSQL** via **Sequelize**.
 
 ## Configuration
 
-Copiez `.env.example` vers `.env`. Variables importantes :
+Fichiers d’environnement à la racine du projet (`src/config/loadEnv.ts`) :
+
+| Fichier chargé | Quand |
+|----------------|--------|
+| `.env.test` | `MODE_CONFIG.current === 'test'` dans `Constants/mode.constant.ts` |
+| `.env.prod` | `MODE_CONFIG.current === 'production'` |
+
+Modèles versionnés : **`.env.test.example`**, **`.env.prod.example`** → copier vers `.env.test` / `.env.prod` (ignorés par Git).
+
+Sur Vercel et assimilés, le fichier peut être absent : les variables injectées par la plateforme suffisent (dotenv ne les écrase pas si déjà définies).
+
+Résolution des clés (`Constants/envResolve.ts`) :
+
+- **production** : uniquement les variables **sans** suffixe `_TEST`.
+- **test** : **`FOO_TEST`** puis **`FOO`** (dans `.env.test` tu peux n’utiliser que `FOO` ; `_TEST` sert de surcharge dans le même fichier).
 
 | Variable | Rôle |
 |----------|------|
-| `STORAGE_DRIVER` | `postgres` (hors test), `memory` (défaut en mode test : RAM, reset au redémarrage), ou `json` (fichier) |
-| `JSON_STORE_PATH` | Chemin du fichier JSON si `STORAGE_DRIVER=json` (défaut : `data/jobetu-test-store.json`) |
-| `DATABASE_URL` | Connexion PostgreSQL (obligatoire si `STORAGE_DRIVER=postgres`) |
-| `JWT_SECRET` | Signature des JWT |
-| `DB_SYNC` | `true` en dev pour `sync` Sequelize (désactiver en prod) |
-| `CORS_ORIGIN` | Origine du front (ex. `http://localhost:5173`) |
+| `STORAGE_DRIVER` / `STORAGE_DRIVER_TEST` | `postgres`, `memory` ou `json` (défaut test sans valeur : mémoire) |
+| `JSON_STORE_PATH` / `JSON_STORE_PATH_TEST` | Fichier JSON si `STORAGE_DRIVER=json` |
+| `DATABASE_URL`, `POSTGRES_URL`, … (+ `_TEST`) | PostgreSQL si `STORAGE_DRIVER=postgres` : `src/config/database.ts` |
+| `JWT_SECRET` / `JWT_SECRET_TEST`, etc. | Secrets et réglages : même convention `_TEST` en mode test |
+| `CORS_ORIGIN` / `CORS_ORIGIN_TEST` | Origine CORS (défaut `http://localhost:5173` si absent) |
+| `DB_SYNC` / `DB_SYNC_TEST` | `sync` Sequelize en dev |
+| `PAYDUNYA_CALLBACK_URL` / `PAYDUNYA_CALLBACK_URL_TEST` | URL complète IPN PayDunya (`callback_url`). Si vide : `{API_PUBLIC_URL}/api/webhooks/paydunya` |
 
 ### Mode test sans PostgreSQL
 
-**Mémoire (défaut si `MODE_CONFIG.current === 'test'` et aucun `STORAGE_DRIVER` dans `.env`)** — idéal pour tester les API, données effacées au redémarrage :
+**Mémoire (défaut si `MODE_CONFIG.current === 'test'` et aucun `STORAGE_DRIVER` / `STORAGE_DRIVER_TEST`)** — idéal pour tester les API, données effacées au redémarrage :
 
 ```bash
 npm run dev:memory

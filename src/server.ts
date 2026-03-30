@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './config/loadEnv';
 import { MODE_CONFIG, TEST_DEFAULT_ADMIN_CONFIG } from '../Constants/mode.constant';
 import { createApp } from './app';
 import {

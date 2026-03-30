@@ -3,6 +3,7 @@ import {
   PAYDUNYA_CONFIG,
   getPaydunyaCheckoutConfirmUrl,
   getPaydunyaCheckoutCreateUrl,
+  getPaydunyaIpnCallbackUrl,
   isPaydunyaConfigured,
 } from '../../Constants/paydunya.constant';
 
@@ -44,7 +45,7 @@ export async function createCheckoutInvoiceForSubmission(input: {
   }
   const amount = PAYDUNYA_CONFIG.submissionAmountFcfa;
   const returnUrl = `${PAYDUNYA_CONFIG.frontendBaseUrl}/paiement/soumission/${input.sessionId}`;
-  const callbackUrl = `${PAYDUNYA_CONFIG.apiPublicBaseUrl}/api/webhooks/paydunya`;
+  const callbackUrl = getPaydunyaIpnCallbackUrl();
 
   const body = {
     invoice: {
