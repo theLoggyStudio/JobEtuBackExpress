@@ -1,0 +1,105 @@
+{
+  "users": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "email": "admin@jobetu.local",
+      "passwordHash": "$2a$10$KHW73kycxfO0okZgVonphu3K5m6B/KPEFlyp9x1A/laFwkNpfZooW",
+      "role": "admin",
+      "displayName": "Administrateur (JSON)",
+      "phone": null,
+      "location": null,
+      "paymentMetadata": null,
+      "createdAt": "2026-03-28T12:00:00.000Z",
+      "updatedAt": "2026-03-28T12:00:00.000Z"
+    }
+  ],
+  "questionnaires": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "slug": "entreprise",
+      "title": "Formulaire entreprise",
+      "targetUserType": "entreprise",
+      "description": "Décrivez votre besoin",
+      "whatsappLink": "",
+      "isActive": true,
+      "definition": {
+        "title": "Formulaire entreprise",
+        "targetUserType": "entreprise",
+        "description": "Décrivez votre besoin",
+        "whatsappLink": "",
+        "steps": [
+          {
+            "title": "Tâche",
+            "fields": [
+              {
+                "name": "task",
+                "label": "Tâche",
+                "type": "text",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Localisation",
+            "fields": [
+              {
+                "name": "location",
+                "label": "Localisation",
+                "type": "text",
+                "required": true
+              }
+            ]
+          }
+        ]
+      },
+      "createdAt": "2026-03-28T12:00:00.000Z",
+      "updatedAt": "2026-03-28T12:00:00.000Z"
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "slug": "etudiant",
+      "title": "Formulaire étudiant",
+      "targetUserType": "etudiant",
+      "description": "Vos compétences et disponibilités",
+      "whatsappLink": "",
+      "isActive": true,
+      "definition": {
+        "title": "Formulaire étudiant",
+        "targetUserType": "etudiant",
+        "description": "Vos compétences et disponibilités",
+        "whatsappLink": "",
+        "steps": [
+          {
+            "title": "Compétences",
+            "fields": [
+              {
+                "name": "skills",
+                "label": "Compétences",
+                "type": "textarea",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Disponibilité",
+            "fields": [
+              {
+                "name": "availability",
+                "label": "Disponibilité",
+                "type": "text",
+                "required": false
+              }
+            ]
+          }
+        ]
+      },
+      "createdAt": "2026-03-28T12:00:00.000Z",
+      "updatedAt": "2026-03-28T12:00:00.000Z"
+    }
+  ],
+  "submissions": [],
+  "answers": [],
+  "matches": [],
+  "matchMessages": [],
+  "submissionPaymentSessions": []
+}
