@@ -9,7 +9,7 @@ export type AppMode = 'test' | 'production';
 
 /** Modifiez `current` : `'test'` ou `'production'`. */
 export const MODE_CONFIG: { current: AppMode } = {
-  current: 'production',
+  current: 'test',
 };
 
 export const isTestMode = MODE_CONFIG.current === 'test';
