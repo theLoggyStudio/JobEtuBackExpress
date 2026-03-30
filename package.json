@@ -7,8 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "dev:memory": "cross-env STORAGE_DRIVER=memory tsx watch src/server.ts",
     "dev:json": "cross-env STORAGE_DRIVER=json tsx watch src/server.ts",
-    "build": "tsc && node scripts/obfuscate.mjs",
-    "build:plain": "tsc",
+    "build": "npx tsc && node scripts/obfuscate.mjs",
+    "build:plain": "npx tsc",
     "start": "node dist/server.js",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
     "build:obfuscate": "tsc && node scripts/obfuscate.mjs"
@@ -25,6 +25,7 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5",
     "serverless-http": "^3.2.0",
+    "typescript": "~5.7.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -35,7 +36,6 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.5",
     "javascript-obfuscator": "^4.1.1",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsx": "^4.19.2"
   }
 }
