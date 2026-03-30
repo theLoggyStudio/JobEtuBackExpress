@@ -7,11 +7,11 @@
     "dev": "tsx watch src/server.ts",
     "dev:memory": "cross-env STORAGE_DRIVER=memory tsx watch src/server.ts",
     "dev:json": "cross-env STORAGE_DRIVER=json tsx watch src/server.ts",
-    "build": "npx tsc && node scripts/obfuscate.mjs",
-    "build:plain": "npx tsc",
+    "build": "npm install && npx tsc && node scripts/obfuscate.mjs",
+    "build:plain": "npm install && npx tsc",
     "start": "node dist/server.js",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "build:obfuscate": "tsc && node scripts/obfuscate.mjs"
+    "build:obfuscate": "npm install && npx tsc && node scripts/obfuscate.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
