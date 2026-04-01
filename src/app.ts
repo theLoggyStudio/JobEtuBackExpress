@@ -2,6 +2,7 @@
  * Fichier attendu par la détection Express Vercel (`src/app.ts`) : **export default** = app ou handler.
  * La configuration des routes reste dans `expressApp.ts` (`createApp`).
  */
+import 'express';
 import './config/loadEnv';
 import { createApp } from './expressApp';
 

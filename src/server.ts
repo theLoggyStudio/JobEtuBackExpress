@@ -1,3 +1,4 @@
+import 'express';
 import app from './app';
 import { MODE_CONFIG, TEST_DEFAULT_ADMIN_CONFIG } from '../Constants/mode.constant';
 import {
