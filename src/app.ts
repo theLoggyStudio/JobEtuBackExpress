@@ -17,6 +17,11 @@ export function createApp(): express.Express {
   const app = express();
   app.set('trust proxy', 1);
 
+  /** Diagnostic déploiement : si cette URL répond en JSON, Express tourne (réécriture → /api/handler). */
+  app.get('/api/diagnostic-ping', (_req, res) => {
+    res.status(200).json({ ok: true, layer: 'express', route: 'diagnostic-ping' });
+  });
+
   /** Réécriture vercel.json → /api/handler : rétablit le chemin client pour le routeur Express. */
   if (process.env.VERCEL === '1') {
     app.use((req, _res, next) => {

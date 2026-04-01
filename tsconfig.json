@@ -12,5 +12,5 @@
     "declaration": false,
     "sourceMap": true
   },
-  "include": ["src/**/*.ts", "Constants/**/*.ts"]
+  "include": ["src/**/*.ts", "Constants/**/*.ts", "api/**/*.ts"]
 }

@@ -31,12 +31,12 @@ const privateKeyForMode =
 const publicKeyForMode =
   paydunyaMode === 'live'
     ? envPay('PAYDUNYA_LIVE_PUBLIC_KEY') || envPay('PAYDUNYA_PUBLIC_KEY')
-    : envPay('PAYDUNYA_TEST_PPUBLIC_KEY') || envPay('PAYDUNYA_PUBLIC_KEY');
+    : envPay('PAYDUNYA_TEST_PUBLIC_KEY') || envPay('PAYDUNYA_PUBLIC_KEY');
 
 const tokenForMode =
   paydunyaMode === 'live'
     ? envPay('PAYDUNYA_LIVE_TOKEN') || envPay('PAYDUNYA_TOKEN')
-    : envPay('PAYDUNYA_TEST_PTOKEN') || envPay('PAYDUNYA_TOKEN');
+    : envPay('PAYDUNYA_TEST_TOKEN') || envPay('PAYDUNYA_TOKEN');
 
 export const PAYDUNYA_CONFIG = {
   /** Clé principale (Master Key) — sert aussi à vérifier le hash des IPN / réponses confirm. */
