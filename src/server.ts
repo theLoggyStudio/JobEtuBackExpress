@@ -1,6 +1,5 @@
-import './config/loadEnv';
+import app from './app';
 import { MODE_CONFIG, TEST_DEFAULT_ADMIN_CONFIG } from '../Constants/mode.constant';
-import { createApp } from './app';
 import {
   APP_CONFIG,
   MESSAGE_CONFIG,
@@ -12,7 +11,6 @@ import { syncDatabase } from './models';
 
 async function main(): Promise<void> {
   await syncDatabase();
-  const app = createApp();
   app.listen(SERVER_CONFIG.port, () => {
     console.log(`${APP_CONFIG.name} écoute sur le port ${SERVER_CONFIG.port}`);
     if (usesJsonStylePersistence()) {

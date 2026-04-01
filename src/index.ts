@@ -1,9 +1,5 @@
 /**
- * Point d’entrée Vercel : export **de l’app Express** (recommandation Vercel), pas serverless-http.
+ * Point d’entrée commun : même instance que `app.ts` (Vercel / `api/handler.ts`).
  * @see https://vercel.com/docs/frameworks/backend/express
  */
-import './config/loadEnv';
-import { createApp } from './app';
-
-const app = createApp();
-export default app;
+export { default } from './app';
