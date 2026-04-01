@@ -1,3 +1,4 @@
+import pg from 'pg';
 import { Sequelize } from 'sequelize';
 import { isProductionAppMode } from '../../Constants/envResolve';
 import { MESSAGE_CONFIG, SERVER_CONFIG, STORAGE_DRIVER_CONFIG } from '../../Constants/variable.constant';
@@ -103,6 +104,8 @@ export const sequelize: Sequelize | null =
   SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres && databaseUrl
     ? new Sequelize(databaseUrl, {
         dialect: 'postgres',
+        /** Vercel : sans import statique + dialectModule, le bundle serverless omet `pg` (require dynamique dans Sequelize). */
+        dialectModule: pg,
         logging: SERVER_CONFIG.nodeEnv === 'development' ? console.log : false,
         dialectOptions: useSequelizeDialectSsl ? { ssl: true } : {},
         define: {

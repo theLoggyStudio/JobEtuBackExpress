@@ -34,6 +34,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
     "javascript-obfuscator": "^4.1.1",
     "tsx": "^4.19.2"
   }
