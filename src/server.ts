@@ -9,9 +9,15 @@ import {
   usesJsonStylePersistence,
 } from '../Constants/variable.constant';
 import { syncDatabase } from './models';
+import { ensureEnvAdminUser } from './services/ensureEnvAdmin';
 
 async function main(): Promise<void> {
   await syncDatabase();
+  try {
+    await ensureEnvAdminUser();
+  } catch (e) {
+    console.error('[JobEtu] ensureEnvAdminUser:', e);
+  }
   app.listen(SERVER_CONFIG.port, () => {
     console.log(`${APP_CONFIG.name} écoute sur le port ${SERVER_CONFIG.port}`);
     if (usesJsonStylePersistence()) {

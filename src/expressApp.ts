@@ -13,6 +13,7 @@ import { errorHandler } from './middlewares/errorHandler';
 import { globalLimiter } from './middlewares/rateLimiter';
 import { registerRoutes } from './routes';
 import { sequelize, syncDatabase } from './models';
+import { ensureEnvAdminUser } from './services/ensureEnvAdmin';
 
 export function createApp(): express.Express {
   const app = express();
@@ -51,6 +52,11 @@ export function createApp(): express.Express {
     dbSynced = true;
     try {
       await syncDatabase();
+      try {
+        await ensureEnvAdminUser();
+      } catch (adminErr) {
+        console.error('[JobEtu] ensureEnvAdminUser:', adminErr);
+      }
     } catch (err) {
       dbSynced = false;
       next(err instanceof Error ? err : new Error(String(err)));

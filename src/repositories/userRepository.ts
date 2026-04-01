@@ -90,6 +90,7 @@ export type UserProfilePatch = {
   phone?: string | null;
   email?: string;
   passwordHash?: string;
+  role?: UserRole;
 };
 
 export async function updateUserById(userId: string, patch: UserProfilePatch): Promise<UserEntity | null> {
@@ -104,6 +105,7 @@ export async function updateUserById(userId: string, patch: UserProfilePatch): P
         phone: patch.phone !== undefined ? patch.phone : prev.phone,
         email: patch.email !== undefined ? patch.email.toLowerCase() : prev.email,
         passwordHash: patch.passwordHash !== undefined ? patch.passwordHash : prev.passwordHash,
+        role: patch.role !== undefined ? patch.role : prev.role,
         updatedAt: new Date(),
       };
       store.users[i] = next;
@@ -115,6 +117,7 @@ export async function updateUserById(userId: string, patch: UserProfilePatch): P
   if (patch.phone !== undefined) row.phone = patch.phone;
   if (patch.email !== undefined) row.email = patch.email.toLowerCase();
   if (patch.passwordHash !== undefined) row.passwordHash = patch.passwordHash;
+  if (patch.role !== undefined) row.role = patch.role;
   if (Object.keys(row).length === 0) {
     const u = await User.findByPk(userId);
     return u ? modelToEntity(u) : null;
