@@ -17,6 +17,24 @@ export function createApp(): express.Express {
   const app = express();
   app.set('trust proxy', 1);
 
+  /** Réécriture vercel.json → /api/handler : rétablit le chemin client pour le routeur Express. */
+  if (process.env.VERCEL === '1') {
+    app.use((req, _res, next) => {
+      const pathOnly = (req.url || '/').split('?')[0];
+      if (pathOnly !== '/api/handler' && pathOnly !== '/api/handler/') {
+        next();
+        return;
+      }
+      const orig = req.originalUrl || '/';
+      const origPath = orig.split('?')[0];
+      const query = orig.includes('?') ? orig.slice(orig.indexOf('?')) : '';
+      const target =
+        origPath === '/api/handler' || origPath === '/api/handler/' ? '/' : origPath;
+      req.url = target + query;
+      next();
+    });
+  }
+
   /** Vercel (serverless) : sync Sequelize une fois au premier hit ; `server.ts` fait déjà await sync avant listen en local. */
   let dbSynced = false;
   app.use(async (_req, _res, next) => {
