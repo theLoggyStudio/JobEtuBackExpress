@@ -42,10 +42,10 @@ export function resolvePostgresConnectionString(): string | undefined {
 
 const databaseUrl = resolvePostgresConnectionString();
 
-if (SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres) {
-  if (!databaseUrl) {
-    throw new Error(MESSAGE_CONFIG.databaseUrlRequired);
-  }
+if (SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres && !databaseUrl) {
+  console.warn(
+    `[JobEtu] ${MESSAGE_CONFIG.databaseUrlRequired} (aucun throw au démarrage — health OK, routes API en 503 jusqu’à configuration.)`
+  );
 }
 
 export const sequelize: Sequelize | null =

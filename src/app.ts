@@ -6,12 +6,13 @@ import {
   MESSAGE_CONFIG,
   SECURITY_CONFIG,
   SERVER_CONFIG,
+  STORAGE_DRIVER_CONFIG,
   embeddedStorageHealthExtra,
 } from '../Constants/variable.constant';
 import { errorHandler } from './middlewares/errorHandler';
 import { globalLimiter } from './middlewares/rateLimiter';
 import { registerRoutes } from './routes';
-import { syncDatabase } from './models';
+import { sequelize, syncDatabase } from './models';
 
 export function createApp(): express.Express {
   const app = express();
@@ -81,9 +82,33 @@ export function createApp(): express.Express {
       message: MESSAGE_CONFIG.serverRunning,
       version: APP_CONFIG.version,
       storageDriver: SERVER_CONFIG.storageDriver,
+      ...(SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres
+        ? {
+            databaseReady: Boolean(sequelize),
+            ...(!sequelize ? { warning: MESSAGE_CONFIG.databaseUrlRequired } : {}),
+          }
+        : {}),
       ...embeddedStorageHealthExtra(),
     });
   });
+
+  /** Postgres sans URL : ne pas faire planter la fonction serverless ; bloquer le reste des routes en 503. */
+  if (SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres) {
+    app.use((req, res, next) => {
+      if (sequelize) {
+        next();
+        return;
+      }
+      if (req.method === 'OPTIONS' || req.path === '/api/diagnostic-ping') {
+        next();
+        return;
+      }
+      res.status(503).json({
+        error: 'Service indisponible',
+        message: MESSAGE_CONFIG.databaseUrlRequired,
+      });
+    });
+  }
 
   registerRoutes(app);
 
