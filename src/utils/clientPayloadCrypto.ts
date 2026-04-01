@@ -22,7 +22,7 @@ export function decryptClientSecretIfEncrypted(value: string): string {
   }
   const ivHex = rest.slice(0, colonIdx);
   const b64 = rest.slice(colonIdx + 1);
-  if (!/^[0-9a-f]{24}$/.test(ivHex)) {
+  if (!/^[0-9a-f]{24}$/.test(ivHex)){
     throw new Error('CLIENT_PAYLOAD_MALFORMED');
   }
   const iv = Buffer.from(ivHex, 'hex');
