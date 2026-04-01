@@ -19,17 +19,24 @@ function buildPostgresUrl(user: string, password: string, host: string, database
   return `postgres://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}/${encodeURIComponent(database)}`;
 }
 
-/** Neon / Vercel / Supabase : TLS requis ; en local (localhost) on évite SSL. */
-function shouldUseSslForPostgresUrl(connectionString: string): boolean {
+/** True si l’URL porte déjà la config TLS (Neon / Vercel Postgres le font presque toujours). */
+function connectionStringDeclaresSsl(connectionString: string): boolean {
+  return /[?&]sslmode=/i.test(connectionString) || /[?&]ssl=true/i.test(connectionString);
+}
+
+/**
+ * Besoin d’ajouter des `dialectOptions` SSL côté Sequelize **uniquement** si l’URL ne le dit pas déjà.
+ * Sinon `pg` reçoit une double config → warning « SECURITY WARNING: The SSL… » et risque d’erreurs.
+ */
+function shouldAddDialectSsl(connectionString: string): boolean {
   if (/sslmode=disable/i.test(connectionString)) return false;
-  if (/sslmode=(require|verify-full|verify-ca)/i.test(connectionString)) return true;
-  if (process.env.VERCEL === '1') return true;
+  if (connectionStringDeclaresSsl(connectionString)) return false;
   try {
     const normalized = connectionString.replace(/^postgres(ql)?:\/\//i, 'http://');
     const u = new URL(normalized);
     return u.hostname !== 'localhost' && u.hostname !== '127.0.0.1';
   } catch {
-    return true;
+    return process.env.VERCEL === '1';
   }
 }
 
@@ -86,19 +93,18 @@ if (SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres && !databaseU
   );
 }
 
-const pgSsl =
+const useSequelizeDialectSsl = Boolean(
   databaseUrl &&
-  resolvedPg?.urlSourceKey !== 'POSTGRES_URL_NO_SSL' &&
-  shouldUseSslForPostgresUrl(databaseUrl)
-    ? { require: true, rejectUnauthorized: false as const }
-    : undefined;
+    resolvedPg?.urlSourceKey !== 'POSTGRES_URL_NO_SSL' &&
+    shouldAddDialectSsl(databaseUrl)
+);
 
 export const sequelize: Sequelize | null =
   SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres && databaseUrl
     ? new Sequelize(databaseUrl, {
         dialect: 'postgres',
         logging: SERVER_CONFIG.nodeEnv === 'development' ? console.log : false,
-        dialectOptions: pgSsl ? { ssl: pgSsl } : {},
+        dialectOptions: useSequelizeDialectSsl ? { ssl: true } : {},
         define: {
           underscored: true,
           timestamps: true,
