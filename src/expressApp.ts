@@ -14,15 +14,11 @@ import { globalLimiter } from './middlewares/rateLimiter';
 import { registerRoutes } from './routes';
 import { sequelize, syncDatabase } from './models';
 import { ensureEnvAdminUser } from './services/ensureEnvAdmin';
+import { maybeHealthDebugEnv } from './utils/healthDebugEnv';
 
 export function createApp(): express.Express {
   const app = express();
   app.set('trust proxy', 1);
-
-  /** Diagnostic déploiement : si cette URL répond en JSON, Express tourne (réécriture → /api/handler). */
-  app.get('/api/diagnostic-ping', (_req, res) => {
-    res.status(200).json({ ok: true, layer: 'express', route: 'diagnostic-ping' });
-  });
 
   /** Réécriture vercel.json → /api/handler : rétablit le chemin client pour le routeur Express. */
   if (process.env.VERCEL === '1') {
@@ -42,7 +38,10 @@ export function createApp(): express.Express {
     });
   }
 
-  /** Vercel (serverless) : sync Sequelize une fois au premier hit ; `server.ts` fait déjà await sync avant listen en local. */
+  /**
+   * Avant toute route : sync PG + admin env (une fois par instance).
+   * Doit précéder `GET /api/diagnostic-ping`, sinon ce hit ne passait pas ici et l’admin n’était jamais créé.
+   */
   let dbSynced = false;
   app.use(async (_req, _res, next) => {
     if (dbSynced) {
@@ -64,6 +63,11 @@ export function createApp(): express.Express {
     }
     next();
   });
+
+  /** Diagnostic déploiement : après bootstrap (tables + admin). */
+  app.get('/api/diagnostic-ping', (_req, res) => {
+    res.status(200).json({ ok: true, layer: 'express', route: 'diagnostic-ping' });
+  });
   app.use(
     helmet({
       contentSecurityPolicy: SECURITY_CONFIG.helmetContentSecurityPolicy ? undefined : false,
@@ -83,6 +87,7 @@ export function createApp(): express.Express {
   });
 
   app.get(`${APP_CONFIG.apiPrefix}/health`, (_req, res) => {
+    const debugEnv = maybeHealthDebugEnv();
     res.json({
       status: 'ok',
       message: MESSAGE_CONFIG.serverRunning,
@@ -95,6 +100,7 @@ export function createApp(): express.Express {
           }
         : {}),
       ...embeddedStorageHealthExtra(),
+      ...(debugEnv ? { debugEnv } : {}),
     });
   });
 

@@ -44,10 +44,20 @@ if (sequelize) {
   SubmissionPaymentSession.belongsTo(User, { foreignKey: 'userId' });
 }
 
+/**
+ * - `DB_SYNC=true` : `sync({ alter: true })` (dev / migrations légères).
+ * - `DB_SYNC=false` (prod par défaut) : `sync()` sans alter — **crée les tables manquantes** sans modifier
+ *   les colonnes existantes. Sinon `ensureEnvAdmin` / requêtes échouent sur une base Neon vide.
+ */
 export async function syncDatabase(): Promise<void> {
-  if (sequelize && SERVER_CONFIG.storageDriver === STORAGE_DRIVER_CONFIG.postgres && SERVER_CONFIG.dbSync) {
-    await sequelize.sync({ alter: true });
+  if (!sequelize || SERVER_CONFIG.storageDriver !== STORAGE_DRIVER_CONFIG.postgres) {
+    return;
   }
+  if (SERVER_CONFIG.dbSync) {
+    await sequelize.sync({ alter: true });
+    return;
+  }
+  await sequelize.sync();
 }
 
 export {
