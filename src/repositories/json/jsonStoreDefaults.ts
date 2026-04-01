@@ -1,5 +1,6 @@
 import { TEST_DEFAULT_ADMIN_CONFIG } from '../../../Constants/mode.constant';
 import { QUESTIONNAIRE_TARGET_CONFIG, ROLE_CONFIG, SECURITY_CONFIG } from '../../../Constants/variable.constant';
+import { DEFAULT_ENTREPRISE_QUESTIONNAIRE_STEPS } from './defaultEntrepriseQuestionnaireSteps';
 import bcrypt from 'bcryptjs';
 import type {
   AnswerEntity,
@@ -57,16 +58,7 @@ export function createDefaultJsonStore(): JsonStoreFile {
           targetUserType: QUESTIONNAIRE_TARGET_CONFIG.entreprise,
           description: 'Décrivez votre besoin',
           whatsappLink: '',
-          steps: [
-            {
-              title: 'Tâche',
-              fields: [{ name: 'task', label: 'Tâche', type: 'text', required: true }],
-            },
-            {
-              title: 'Localisation',
-              fields: [{ name: 'location', label: 'Localisation', type: 'text', required: true }],
-            },
-          ],
+          steps: [...DEFAULT_ENTREPRISE_QUESTIONNAIRE_STEPS],
         },
         createdAt: now,
         updatedAt: now,

@@ -29,22 +29,251 @@
         "whatsappLink": "",
         "steps": [
           {
-            "title": "Tâche",
+            "title": "Secteur d'activité",
             "fields": [
               {
-                "name": "task",
-                "label": "Tâche",
+                "name": "ent_secteur_activite",
+                "label": "Secteur d'activité",
+                "type": "checkboxes",
+                "required": true,
+                "options": [
+                  "Commerce",
+                  "Services",
+                  "Communication / Digital",
+                  "Comptabilité / Finance",
+                  "Éducation / Formation",
+                  "Santé",
+                  "Hôtellerie / Restauration",
+                  "ONG / Association",
+                  "Autre"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Ville / quartier",
+            "fields": [
+              {
+                "name": "ent_ville_quartier",
+                "label": "Ville / Quartier",
                 "type": "text",
                 "required": true
               }
             ]
           },
           {
-            "title": "Localisation",
+            "title": "Contact principal",
             "fields": [
               {
-                "name": "location",
-                "label": "Localisation",
+                "name": "ent_nom_responsable",
+                "label": "Nom du responsable / contact principal (indiquez aussi le poste si utile)",
+                "type": "text",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Indicatif téléphone",
+            "fields": [
+              {
+                "name": "ent_whatsapp_indicatif",
+                "label": "Indicatif régional (WhatsApp / téléphone)",
+                "type": "text",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Numéro WhatsApp / téléphone",
+            "fields": [
+              {
+                "name": "ent_whatsapp_numero",
+                "label": "Numéro de téléphone",
+                "type": "tel",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "E-mail",
+            "fields": [
+              {
+                "name": "ent_email",
+                "label": "Adresse e-mail (facultatif) — exemple@exemple.com",
+                "type": "email",
+                "required": false
+              }
+            ]
+          },
+          {
+            "title": "Type de besoin",
+            "fields": [
+              {
+                "name": "ent_type_besoin",
+                "label": "Quel type de besoin avez-vous ?",
+                "type": "checkboxes",
+                "required": true,
+                "options": [
+                  "Mission ponctuelle",
+                  "Temps partiel",
+                  "Stage",
+                  "Renfort temporaire",
+                  "Autre"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Compétences recherchées",
+            "fields": [
+              {
+                "name": "ent_competences_recherchees",
+                "label": "Compétences recherchées",
+                "type": "checkboxes",
+                "required": true,
+                "options": [
+                  "Bureautique (Word, Excel)",
+                  "Saisie de données",
+                  "Secrétariat / Administration",
+                  "Comptabilité basique",
+                  "Gestion de stock",
+                  "Vente / Commerce",
+                  "Accueil & service client",
+                  "Community management",
+                  "Graphisme (Canva, Photoshop)",
+                  "Rédaction / Communication",
+                  "Informatique / Support technique",
+                  "Développement web (niveau junior)",
+                  "Enseignement / Formation",
+                  "Livraison / Logistique",
+                  "Hôtellerie / Restauration",
+                  "Enquêtes terrain / Collecte de données",
+                  "Autre (à préciser)"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Autre compétence",
+            "fields": [
+              {
+                "name": "ent_competences_autre_precision",
+                "label": "Si autre compétence, précisez :",
+                "type": "textarea",
+                "required": false
+              }
+            ]
+          },
+          {
+            "title": "Durée estimée",
+            "fields": [
+              {
+                "name": "ent_duree_mission",
+                "label": "Durée estimée de la mission",
+                "type": "radio",
+                "required": true,
+                "options": [
+                  "Quelques jours",
+                  "1 semaine",
+                  "1 mois",
+                  "Plus d'un mois",
+                  "À définir"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Jours et horaires",
+            "fields": [
+              {
+                "name": "ent_jours_horaires",
+                "label": "Jours / horaires prévus",
+                "type": "textarea",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Date de démarrage",
+            "fields": [
+              {
+                "name": "ent_date_demarrage",
+                "label": "Date souhaitée de démarrage",
+                "type": "date",
+                "required": true
+              }
+            ]
+          },
+          {
+            "title": "Budget",
+            "fields": [
+              {
+                "name": "ent_budget_estime",
+                "label": "Budget estimé pour la mission",
+                "type": "radio",
+                "required": true,
+                "options": [
+                  "Moins de 50 000 FCFA",
+                  "50 000 – 100 000 FCFA",
+                  "100 000 FCFA et plus",
+                  "À définir"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Rémunération",
+            "fields": [
+              {
+                "name": "ent_mode_remuneration",
+                "label": "Mode de rémunération",
+                "type": "checkboxes",
+                "required": true,
+                "options": [
+                  "Journalier",
+                  "Hebdomadaire",
+                  "Forfait",
+                  "Autre"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Expérience avec étudiants",
+            "fields": [
+              {
+                "name": "ent_deja_etudiants_stagiaires",
+                "label": "Avez-vous déjà travaillé avec des étudiants ou stagiaires ?",
+                "type": "radio",
+                "required": true,
+                "options": [
+                  "Oui",
+                  "Non"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Recontact rapide",
+            "fields": [
+              {
+                "name": "ent_recontact_rapide",
+                "label": "Souhaitez-vous être recontacté rapidement ?",
+                "type": "radio",
+                "required": true,
+                "options": [
+                  "Oui",
+                  "Non"
+                ]
+              }
+            ]
+          },
+          {
+            "title": "Découverte de la plateforme",
+            "fields": [
+              {
+                "name": "ent_comment_connu_plateforme",
+                "label": "Comment avez-vous connu cette plateforme ?",
                 "type": "text",
                 "required": true
               }
@@ -53,7 +282,7 @@
         ]
       },
       "createdAt": "2026-03-28T12:00:00.000Z",
-      "updatedAt": "2026-03-28T12:00:00.000Z"
+      "updatedAt": "2026-04-01T06:24:41.288Z"
     },
     {
       "id": "10000000-0000-4000-8000-000000000002",
