@@ -10,6 +10,7 @@ import {
 import type { QuestionnaireEntity } from '../repositories/entities';
 import {
   createQuestionnaireEntity,
+  findActiveQuestionnaireForPublicTarget,
   findQuestionnaireById,
   findQuestionnaireBySlug,
   findQuestionnaireByTarget,
@@ -51,13 +52,18 @@ export async function listQuestionnaires(req: Request, res: Response): Promise<v
 
 export async function getBySlug(req: Request, res: Response): Promise<void> {
   const slug = req.params.slug;
+  const canonical =
+    slug === QUESTIONNAIRE_TARGET_CONFIG.entreprise || slug === QUESTIONNAIRE_TARGET_CONFIG.etudiant;
+
   let q = await findQuestionnaireBySlug(slug);
-  if (
-    !q &&
-    (slug === QUESTIONNAIRE_TARGET_CONFIG.entreprise || slug === QUESTIONNAIRE_TARGET_CONFIG.etudiant)
-  ) {
+
+  if (canonical && (!q || !q.isActive)) {
+    const active = await findActiveQuestionnaireForPublicTarget(slug as QuestionnaireTarget);
+    if (active) q = active;
+  } else if (!q && canonical) {
     q = await findQuestionnaireByTarget(slug as QuestionnaireTarget);
   }
+
   if (!q || !q.isActive) {
     res.status(HTTP_STATUS.notFound).json({ error: MESSAGE_CONFIG.notFound });
     return;

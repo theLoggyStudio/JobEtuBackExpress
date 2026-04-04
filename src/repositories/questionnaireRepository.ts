@@ -33,8 +33,8 @@ export async function listQuestionnairesAdmin(): Promise<QuestionnaireEntity[]> 
 
 export async function listQuestionnairesPublic(target?: string): Promise<QuestionnaireEntity[]> {
   if (target === QUESTIONNAIRE_TARGET_CONFIG.entreprise || target === QUESTIONNAIRE_TARGET_CONFIG.etudiant) {
-    const q = await findQuestionnaireByTarget(target);
-    return q && q.isActive ? [q] : [];
+    const q = await findActiveQuestionnaireForPublicTarget(target as QuestionnaireTarget);
+    return q ? [q] : [];
   }
   if (usesJsonStylePersistence()) {
     const s = loadJsonStore();
@@ -80,6 +80,34 @@ export async function findQuestionnaireByTarget(
   if (canonical) return toQuestionnaireEntity(canonical);
   const rows = await Questionnaire.findAll({
     where: { targetUserType: target },
+    order: [['updatedAt', 'DESC']],
+    limit: 1,
+  });
+  return rows[0] ? toQuestionnaireEntity(rows[0]) : null;
+}
+
+/**
+ * Liste publique / accès utilisateur : uniquement un formulaire **actif** pour la cible.
+ * Préfère le slug canonique (`entreprise` | `etudiant`) parmi les actifs, sinon le plus récent actif.
+ * (Évite le piège : ligne canonique inactive mais autre enregistrement actif pour la même cible.)
+ */
+export async function findActiveQuestionnaireForPublicTarget(
+  target: QuestionnaireTarget
+): Promise<QuestionnaireEntity | null> {
+  if (usesJsonStylePersistence()) {
+    const s = loadJsonStore();
+    const actives = s.questionnaires.filter((q) => q.targetUserType === target && q.isActive);
+    if (actives.length === 0) return null;
+    const canonical = actives.find((q) => q.slug === target);
+    if (canonical) return canonical;
+    return [...actives].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]!;
+  }
+  const canonicalActive = await Questionnaire.findOne({
+    where: { slug: target, targetUserType: target, isActive: true },
+  });
+  if (canonicalActive) return toQuestionnaireEntity(canonicalActive);
+  const rows = await Questionnaire.findAll({
+    where: { targetUserType: target, isActive: true },
     order: [['updatedAt', 'DESC']],
     limit: 1,
   });
