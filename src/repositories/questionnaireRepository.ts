@@ -5,6 +5,7 @@ import type { QuestionnaireTarget } from '../../Constants/types.constant';
 import { Questionnaire } from '../models';
 import type { QuestionnaireEntity } from './entities';
 import { loadJsonStore, withJsonStore } from './json/jsonDb';
+import { normalizeQuestionnaireIsActive } from '../utils/normalizeQuestionnaireIsActive';
 
 export function toQuestionnaireEntity(q: InstanceType<typeof Questionnaire>): QuestionnaireEntity {
   const t = q as InstanceType<typeof Questionnaire> & { createdAt: Date; updatedAt: Date };
@@ -16,7 +17,7 @@ export function toQuestionnaireEntity(q: InstanceType<typeof Questionnaire>): Qu
     description: q.description,
     whatsappLink: q.whatsappLink,
     definition: q.definition as Record<string, unknown>,
-    isActive: q.isActive,
+    isActive: normalizeQuestionnaireIsActive(q.get('isActive')),
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   };

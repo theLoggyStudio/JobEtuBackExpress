@@ -19,6 +19,7 @@ import type {
   SubmissionPaymentSessionEntity,
   UserEntity,
 } from '../entities';
+import { normalizeQuestionnaireIsActive } from '../../utils/normalizeQuestionnaireIsActive';
 import { createDefaultJsonStore, type JsonStoreFile } from './jsonStoreDefaults';
 
 export type { JsonStoreFile } from './jsonStoreDefaults';
@@ -52,6 +53,7 @@ function parseDates<T extends JsonStoreFile>(raw: T): JsonStoreFile {
       slug,
       targetUserType,
       definition,
+      isActive: normalizeQuestionnaireIsActive((q as QuestionnaireEntity & { isActive?: unknown }).isActive),
       createdAt: new Date(q.createdAt as unknown as string),
       updatedAt: new Date(q.updatedAt as unknown as string),
     };

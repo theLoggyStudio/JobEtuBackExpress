@@ -21,6 +21,7 @@ import {
   updateQuestionnaireEntity,
 } from '../repositories/questionnaireRepository';
 import { questionnaireDefinitionSchema } from '../validators/questionnaireSchema';
+import { normalizeQuestionnaireIsActive } from '../utils/normalizeQuestionnaireIsActive';
 
 function dto(q: QuestionnaireEntity) {
   const def = q.definition as Record<string, unknown>;
@@ -32,7 +33,7 @@ function dto(q: QuestionnaireEntity) {
     description: q.description,
     whatsappLink: q.whatsappLink,
     definition: def,
-    isActive: q.isActive,
+    isActive: normalizeQuestionnaireIsActive(q.isActive),
   };
 }
 
