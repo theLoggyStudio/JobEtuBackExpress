@@ -18,4 +18,8 @@ export function requireRoles(...roles: UserRole[]) {
 
 export const requireAdmin = requireRoles(ROLE_CONFIG.admin);
 
-export const requireBusinessUser = requireRoles(ROLE_CONFIG.entreprise, ROLE_CONFIG.etudiant);
+export const requireBusinessUser = requireRoles(
+  ROLE_CONFIG.entreprise,
+  ROLE_CONFIG.etudiant,
+  ROLE_CONFIG.particulier
+);

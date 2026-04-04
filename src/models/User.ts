@@ -38,7 +38,12 @@ export function initUser(sequelize: Sequelize): typeof User {
       email: { type: DataTypes.STRING(320), allowNull: false, unique: true },
       passwordHash: { type: DataTypes.STRING(255), allowNull: false },
       role: {
-        type: DataTypes.ENUM(ROLE_CONFIG.admin, ROLE_CONFIG.entreprise, ROLE_CONFIG.etudiant),
+        type: DataTypes.ENUM(
+          ROLE_CONFIG.admin,
+          ROLE_CONFIG.entreprise,
+          ROLE_CONFIG.etudiant,
+          ROLE_CONFIG.particulier
+        ),
         allowNull: false,
       },
       displayName: DataTypes.STRING(200),

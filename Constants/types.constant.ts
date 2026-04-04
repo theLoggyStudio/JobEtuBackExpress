@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'entreprise' | 'etudiant';
+export type UserRole = 'admin' | 'entreprise' | 'etudiant' | 'particulier';
 
 export type QuestionnaireTarget = 'entreprise' | 'etudiant';
 

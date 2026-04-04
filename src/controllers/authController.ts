@@ -16,7 +16,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
   displayName: z.string().min(1).max(200),
-  role: z.enum([ROLE_CONFIG.entreprise, ROLE_CONFIG.etudiant]),
+  role: z.enum([ROLE_CONFIG.entreprise, ROLE_CONFIG.etudiant, ROLE_CONFIG.particulier]),
   phone: z.string().max(BUSINESS_RULES.maxPhoneLength).optional(),
 });
 

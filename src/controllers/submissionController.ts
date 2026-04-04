@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { HTTP_STATUS, MESSAGE_CONFIG, QUESTIONNAIRE_TARGET_CONFIG, ROLE_CONFIG } from '../../Constants/variable.constant';
-import { isPaydunyaConfigured } from '../../Constants/paydunya.constant';
+import { HTTP_STATUS, MESSAGE_CONFIG, ROLE_CONFIG } from '../../Constants/variable.constant';
 import type { QuestionnaireTarget } from '../../Constants/types.constant';
 import { findQuestionnaireById } from '../repositories/questionnaireRepository';
+import { submissionRoleMatchesTarget } from '../utils/submissionRoleMatchesTarget';
 import {
   createSubmissionWithAnswers,
   getSubmissionSummaryById,
@@ -22,10 +22,6 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     res.status(HTTP_STATUS.unauthorized).json({ error: MESSAGE_CONFIG.unauthorized });
     return;
   }
-  if (isPaydunyaConfigured()) {
-    res.status(HTTP_STATUS.paymentRequired).json({ error: MESSAGE_CONFIG.submissionRequiresPaydunya });
-    return;
-  }
   const body = submitSchema.parse(req.body);
   const questionnaire = await findQuestionnaireById(body.questionnaireId);
   if (!questionnaire || !questionnaire.isActive) {
@@ -33,7 +29,7 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     return;
   }
   const expected = questionnaire.targetUserType as QuestionnaireTarget;
-  if (req.auth.role !== expected) {
+  if (!submissionRoleMatchesTarget(req.auth.role, expected)) {
     res.status(HTTP_STATUS.forbidden).json({ error: MESSAGE_CONFIG.forbidden });
     return;
   }

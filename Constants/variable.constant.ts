@@ -7,7 +7,7 @@ import { MODE_CONFIG } from './mode.constant';
  * Mode test / production : voir `Constants/mode.constant.ts`.
  */
 export const APP_CONFIG = {
-  name: 'JobEtu API',
+  name: 'OneJob API',
   version: '0.1.0',
   apiPrefix: '/api',
 } as const;
@@ -87,6 +87,7 @@ export const ROLE_CONFIG = {
   admin: 'admin',
   entreprise: 'entreprise',
   etudiant: 'etudiant',
+  particulier: 'particulier',
 } as const;
 
 /** Cibles possibles pour un questionnaire (sous-ensemble des rôles métier) */
@@ -96,7 +97,7 @@ export const QUESTIONNAIRE_TARGET_CONFIG = {
 } as const;
 
 export const MESSAGE_CONFIG = {
-  serverRunning: 'JobEtu API opérationnelle',
+  serverRunning: 'OneJob API opérationnelle',
   modeJsonActif: 'Mode persistance JSON (test) — aucune base PostgreSQL',
   modeMemoryActif:
     'Mode persistance mémoire (test) — données réinitialisées à chaque redémarrage du serveur',

@@ -20,6 +20,7 @@ import {
   type PaydunyaConfirmPayload,
 } from '../services/paydunyaHttpService';
 import type { QuestionnaireTarget } from '../../Constants/types.constant';
+import { submissionRoleMatchesTarget } from '../utils/submissionRoleMatchesTarget';
 
 const initSchema = z.object({
   questionnaireId: z.string().uuid(),
@@ -108,7 +109,7 @@ export async function initPaydunyaSubmissionCheckout(req: Request, res: Response
     return;
   }
   const expected = questionnaire.targetUserType as QuestionnaireTarget;
-  if (req.auth.role !== expected) {
+  if (!submissionRoleMatchesTarget(req.auth.role, expected)) {
     res.status(HTTP_STATUS.forbidden).json({ error: MESSAGE_CONFIG.forbidden });
     return;
   }
