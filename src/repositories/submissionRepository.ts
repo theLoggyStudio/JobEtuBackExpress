@@ -2,12 +2,13 @@ import { randomUUID } from 'node:crypto';
 import { Op } from 'sequelize';
 import {
   BUSINESS_RULES,
+  MESSAGE_CONFIG,
   PAGINATION_CONFIG,
   QUESTIONNAIRE_TARGET_CONFIG,
   usesJsonStylePersistence,
 } from '../../Constants/variable.constant';
 import type { QuestionnaireTarget } from '../../Constants/types.constant';
-import { Questionnaire, QuestionnaireSubmission, SubmissionAnswer, User } from '../models';
+import { Questionnaire, QuestionnaireSubmission, SubmissionAnswer, User, sequelize } from '../models';
 import type { AnswerEntity, QuestionnaireEntity, SubmissionEntity, UserEntity } from './entities';
 import { loadJsonStore, withJsonStore } from './json/jsonDb';
 import { toQuestionnaireEntity } from './questionnaireRepository';
@@ -82,19 +83,40 @@ export async function createSubmissionWithAnswers(input: {
       return { id: subId };
     });
   }
-  const submission = await QuestionnaireSubmission.create({
-    userId: input.userId,
-    questionnaireId: input.questionnaireId,
-    targetUserType: input.targetUserType,
-    profileSnapshot: input.profileSnapshot,
-  });
-  const rows = Object.entries(input.answers).map(([fieldName, value]) => ({
-    submissionId: submission.id,
-    fieldName,
-    value: String(value),
-  }));
-  await SubmissionAnswer.bulkCreate(rows);
-  return { id: submission.id };
+  if (!sequelize) {
+    throw new Error(MESSAGE_CONFIG.databaseUrlRequired);
+  }
+
+  const MAX_FIELD_NAME_LEN = 200;
+  const MAX_VALUE_LEN = 100_000;
+
+  const t = await sequelize.transaction();
+  try {
+    const submission = await QuestionnaireSubmission.create(
+      {
+        userId: input.userId,
+        questionnaireId: input.questionnaireId,
+        targetUserType: input.targetUserType,
+        profileSnapshot: input.profileSnapshot,
+      },
+      { transaction: t }
+    );
+    const rows = Object.entries(input.answers)
+      .filter(([fieldName]) => fieldName.trim().length > 0)
+      .map(([fieldName, value]) => ({
+        submissionId: submission.id,
+        fieldName: fieldName.trim().slice(0, MAX_FIELD_NAME_LEN),
+        value: String(value ?? '').slice(0, MAX_VALUE_LEN),
+      }));
+    if (rows.length > 0) {
+      await SubmissionAnswer.bulkCreate(rows, { transaction: t });
+    }
+    await t.commit();
+    return { id: submission.id };
+  } catch (e) {
+    await t.rollback();
+    throw e;
+  }
 }
 
 function buildSummary(

@@ -13,9 +13,23 @@ import { parseLimitOffsetQuery } from '../utils/parsePaginationQuery';
 
 const submitSchema = z.object({
   questionnaireId: z.string().uuid(),
-  answers: z.record(z.string()),
+  /** Valeurs normalisées en chaînes (évite les rejets silencieux côté Sequelize). */
+  answers: z.record(z.unknown()).transform((rec) =>
+    Object.fromEntries(
+      Object.entries(rec).map(([k, v]) => [k, v == null ? '' : typeof v === 'string' ? v : String(v)])
+    )
+  ),
   profileSnapshot: z.record(z.unknown()).optional(),
 });
+
+function sanitizeProfileSnapshot(raw: Record<string, unknown> | undefined): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
 
 export async function createSubmission(req: Request, res: Response): Promise<void> {
   if (!req.auth) {
@@ -37,7 +51,7 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     userId: req.auth.userId,
     questionnaireId: questionnaire.id,
     targetUserType: expected,
-    profileSnapshot: body.profileSnapshot ?? null,
+    profileSnapshot: sanitizeProfileSnapshot(body.profileSnapshot),
     answers: body.answers,
   });
   res.status(HTTP_STATUS.created).json({ id });

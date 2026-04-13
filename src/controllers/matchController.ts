@@ -180,15 +180,29 @@ export async function patchMatchStatus(req: Request, res: Response): Promise<voi
 async function userParticipatesInMatch(userId: string, match: MatchEntity): Promise<boolean> {
   const eSub = await findSubmissionById(match.entrepriseSubmissionId);
   const fSub = await findSubmissionById(match.etudiantSubmissionId);
-  return Boolean(eSub?.userId === userId || fSub?.userId === userId);
+  const uid = String(userId);
+  return Boolean(
+    (eSub && String(eSub.userId) === uid) || (fSub && String(fSub.userId) === uid)
+  );
+}
+
+function senderSideInMatch(
+  senderUserId: string,
+  entrepriseSubmissionUserId: string,
+  etudiantSubmissionUserId: string
+): typeof QUESTIONNAIRE_TARGET_CONFIG.entreprise | typeof QUESTIONNAIRE_TARGET_CONFIG.etudiant {
+  const s = String(senderUserId);
+  if (s === String(entrepriseSubmissionUserId)) return QUESTIONNAIRE_TARGET_CONFIG.entreprise;
+  return QUESTIONNAIRE_TARGET_CONFIG.etudiant;
 }
 
 async function buildMyMatchDto(match: MatchEntity, userId: string) {
   const eSub = await findSubmissionById(match.entrepriseSubmissionId);
   const fSub = await findSubmissionById(match.etudiantSubmissionId);
   if (!eSub || !fSub) return null;
-  const iAmEntreprise = eSub.userId === userId;
-  const iAmEtudiant = fSub.userId === userId;
+  const uid = String(userId);
+  const iAmEntreprise = String(eSub.userId) === uid;
+  const iAmEtudiant = String(fSub.userId) === uid;
   if (!iAmEntreprise && !iAmEtudiant) return null;
   const counterpartySubId = iAmEntreprise ? fSub.id : eSub.id;
   const summary = await getSubmissionSummaryById(counterpartySubId);
@@ -239,11 +253,18 @@ export async function listMatchMessages(req: Request, res: Response): Promise<vo
     res.status(HTTP_STATUS.forbidden).json({ error: MESSAGE_CONFIG.matchNotValidated });
     return;
   }
+  const eSub = await findSubmissionById(match.entrepriseSubmissionId);
+  const fSub = await findSubmissionById(match.etudiantSubmissionId);
+  if (!eSub || !fSub) {
+    res.status(HTTP_STATUS.serverError).json({ error: MESSAGE_CONFIG.validationError });
+    return;
+  }
   const rows = await listMatchMessagesByMatchId(matchId);
   res.json({
     items: rows.map((m) => ({
       id: m.id,
       senderUserId: m.senderUserId,
+      senderSide: senderSideInMatch(m.senderUserId, eSub.userId, fSub.userId),
       body: m.body,
       createdAt: m.createdAt.toISOString(),
     })),
@@ -279,9 +300,15 @@ export async function postMatchMessage(req: Request, res: Response): Promise<voi
     senderUserId: req.auth.userId,
     body: text.trim(),
   });
+  const eSubPost = await findSubmissionById(match.entrepriseSubmissionId);
+  const fSubPost = await findSubmissionById(match.etudiantSubmissionId);
   res.status(HTTP_STATUS.created).json({
     id: msg.id,
     senderUserId: msg.senderUserId,
+    senderSide:
+      eSubPost && fSubPost
+        ? senderSideInMatch(msg.senderUserId, eSubPost.userId, fSubPost.userId)
+        : undefined,
     body: msg.body,
     createdAt: msg.createdAt.toISOString(),
   });
